@@ -1,0 +1,1 @@
+{"version":"2.0","routeKey":"POST /query","rawPath":"/query","requestContext":{"http":{"method":"POST","path":"/query","sourceIp":"127.0.0.1"}},"isBase64Encoded":false,"body":"{\"lat\":26.8879107,\"lng\":80.9494493,\"heading\":0,\"question\":\"Why is this block hotter?\"}"}

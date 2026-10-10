@@ -1,0 +1,1 @@
+{"version":"2.0","routeKey":"POST /query","rawPath":"/query","isBase64Encoded":false,"body":"{\"lat\":0,\"lng\":0,\"heading\":0,\"question\":\"What is the temperature here?\"}"}

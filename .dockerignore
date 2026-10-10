@@ -1,0 +1,10 @@
+**
+!pipeline/
+!pipeline/requirements-worker.txt
+!pipeline/Dockerfile.satellite
+!pipeline/satellite_rasters.py
+!pipeline/satellite_worker.py
+!backend/
+!backend/src/
+!backend/src/satellite_geometry.py
+!backend/src/satellite_store.py

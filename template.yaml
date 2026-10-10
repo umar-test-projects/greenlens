@@ -1,0 +1,154 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: GreenLens grounded environmental query API
+Parameters:
+  DataBucket:
+    Type: String
+    Default: greenlens-data-636993911888-ap-south-1
+  AllowedOrigin:
+    Type: String
+    Default: http://localhost:5173
+Resources:
+  QueryApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: '$default'
+      CorsConfiguration:
+        AllowOrigins: [!Ref AllowedOrigin]
+        AllowMethods: [POST, OPTIONS]
+        AllowHeaders: [Content-Type]
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 2
+        ThrottlingRateLimit: 1
+  QueryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/src/
+      Handler: app.handler
+      Runtime: python3.12
+      Architectures: [x86_64]
+      MemorySize: 512
+      Timeout: 28
+      Environment:
+        Variables:
+          DATA_BUCKET: !Ref DataBucket
+          PROCESSING_BUCKET: !Ref ProcessingBucket
+          PROCESSOR_FUNCTION: !Ref SatelliteWorker
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: s3:GetObject
+              Resource:
+                - !Sub arn:${AWS::Partition}:s3:::${DataBucket}/data/grid.json
+                - !Sub arn:${AWS::Partition}:s3:::${DataBucket}/data/provenance.json
+            - Effect: Allow
+              Action: [s3:GetObject, s3:PutObject]
+              Resource:
+                - !Sub ${ProcessingBucket.Arn}/states/*
+                - !Sub ${ProcessingBucket.Arn}/results/*
+                - !Sub ${ProcessingBucket.Arn}/admission/*
+            - Effect: Allow
+              Action: s3:ListBucket
+              Resource: !GetAtt ProcessingBucket.Arn
+            - Effect: Allow
+              Action: lambda:InvokeFunction
+              Resource: !GetAtt SatelliteWorker.Arn
+            - Effect: Allow
+              Action: ce:GetCostAndUsage
+              Resource: '*'
+      Events:
+        Query:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref QueryApi
+            Path: /query
+            Method: POST
+            TimeoutInMillis: 29000
+        Satellite:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref QueryApi
+            Path: /satellite
+            Method: POST
+            TimeoutInMillis: 29000
+  QueryLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${QueryFunction}
+      RetentionInDays: 7
+  ProcessingBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireProcessingCache
+            Status: Enabled
+            ExpirationInDays: 7
+      Tags:
+        - Key: Project
+          Value: GreenLens
+  SatelliteWorker:
+    Type: AWS::Serverless::Function
+    Metadata:
+      Dockerfile: pipeline/Dockerfile.satellite
+      DockerContext: .
+      DockerTag: python312-v1
+    Properties:
+      PackageType: Image
+      Architectures: [x86_64]
+      MemorySize: 2048
+      Timeout: 300
+      EphemeralStorage:
+        Size: 1024
+      Environment:
+        Variables:
+          PROCESSING_BUCKET: !Ref ProcessingBucket
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [s3:GetObject, s3:PutObject]
+              Resource:
+                - !Sub ${ProcessingBucket.Arn}/states/*
+                - !Sub ${ProcessingBucket.Arn}/results/*
+                - !Sub ${ProcessingBucket.Arn}/admission/*
+            - Effect: Allow
+              Action: s3:ListBucket
+              Resource: !GetAtt ProcessingBucket.Arn
+            - Effect: Allow
+              Action: s3:GetObject
+              Resource: !Sub arn:${AWS::Partition}:s3:::usgs-landsat/collection02/level-2/standard/oli-tirs/*
+  SatelliteAsyncConfig:
+    Type: AWS::Lambda::EventInvokeConfig
+    Properties:
+      FunctionName: !Ref SatelliteWorker
+      Qualifier: '$LATEST'
+      MaximumEventAgeInSeconds: 60
+      MaximumRetryAttempts: 0
+  SatelliteLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${SatelliteWorker}
+      RetentionInDays: 7
+Outputs:
+  QueryUrl:
+    Value: !Sub https://${QueryApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/query
+  SatelliteUrl:
+    Value: !Sub https://${QueryApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/satellite
+  ProcessingCacheBucket:
+    Value: !Ref ProcessingBucket
+  ProcessorFunction:
+    Value: !Ref SatelliteWorker

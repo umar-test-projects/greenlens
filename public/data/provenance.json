@@ -1,0 +1,54 @@
+{
+  "source": "satellite",
+  "area": {
+    "name": "Sector New E, Aliganj, Lucknow",
+    "center": {
+      "lat": 26.8879107,
+      "lng": 80.9494493
+    },
+    "source": "https://maps.app.goo.gl/kEKkMBw38eArnRiL8",
+    "widthM": 1000,
+    "cellSizeM": 100,
+    "crs": "EPSG:32644"
+  },
+  "generatedAt": "2026-10-08T12:32:06.215007+00:00",
+  "provenance": [
+    {
+      "field": "ndvi",
+      "dataset": "sentinel-2-l2a",
+      "sceneId": "S2B_44RMQ_20250407_0_L2A",
+      "acquiredAt": "2025-04-07T05:21:31.703Z",
+      "processing": "Per-band STAC scale/offset; NDVI=(NIR-red)/(NIR+red); nearest SCL classes 4,5,6; 100 m means with >=50% valid 10 m samples.",
+      "assets": {
+        "red": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/44/R/MQ/2025/4/S2B_44RMQ_20250407_0_L2A/B04.tif",
+        "nir": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/44/R/MQ/2025/4/S2B_44RMQ_20250407_0_L2A/B08.tif",
+        "scl": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/44/R/MQ/2025/4/S2B_44RMQ_20250407_0_L2A/SCL.tif"
+      },
+      "registry": "https://registry.opendata.aws/sentinel-2-l2a-cogs/"
+    },
+    {
+      "field": "tempC",
+      "dataset": "landsat-c2-l2",
+      "sceneId": "LC09_L2SP_144041_20250406_02_T1",
+      "acquiredAt": "2025-04-06T05:06:44.198819Z",
+      "processing": "ST_B10*0.00341802+149-273.15; QA_PIXEL bits 0-5 clear and QA_RADSAT=0; nearest resampling; >=50% valid samples per 100 m cell. Native thermal resolution about 100 m.",
+      "assets": {
+        "lwir11": "s3://usgs-landsat/collection02/level-2/standard/oli-tirs/2025/144/041/LC09_L2SP_144041_20250406_20250407_02_T1/LC09_L2SP_144041_20250406_20250407_02_T1_ST_B10.TIF",
+        "qa_pixel": "s3://usgs-landsat/collection02/level-2/standard/oli-tirs/2025/144/041/LC09_L2SP_144041_20250406_20250407_02_T1/LC09_L2SP_144041_20250406_20250407_02_T1_QA_PIXEL.TIF",
+        "qa_radsat": "s3://usgs-landsat/collection02/level-2/standard/oli-tirs/2025/144/041/LC09_L2SP_144041_20250406_20250407_02_T1/LC09_L2SP_144041_20250406_20250407_02_T1_QA_RADSAT.TIF"
+      },
+      "registry": "https://registry.opendata.aws/usgs-landsat/"
+    }
+  ],
+  "temperatureStatus": "Processed Landsat surface temperature, not air temperature.",
+  "validCells": {
+    "ndvi": 100,
+    "tempC": 100
+  },
+  "caveats": [
+    "Historical satellite snapshot, not live weather.",
+    "NDVI is not tree-canopy percentage.",
+    "Different fields may come from different acquisition dates.",
+    "Bearing overlay is approximate; 100 m cells cannot resolve individual trees."
+  ]
+}

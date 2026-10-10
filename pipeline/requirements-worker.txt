@@ -1,0 +1,4 @@
+boto3[crt]==1.43.109
+numpy==2.5.3
+rasterio==1.5.2
+pyproj==3.8.0

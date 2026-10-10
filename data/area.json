@@ -1,0 +1,8 @@
+{
+  "name": "Sector New E, Aliganj, Lucknow",
+  "center": {"lat": 26.8879107, "lng": 80.9494493},
+  "source": "https://maps.app.goo.gl/kEKkMBw38eArnRiL8",
+  "widthM": 1000,
+  "cellSizeM": 100,
+  "crs": "EPSG:32644"
+}
